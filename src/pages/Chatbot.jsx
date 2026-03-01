@@ -1,137 +1,58 @@
-import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
-import Table from "../components/Table";
-import Modal from "../components/Modal";
+import { useState, useRef, useEffect } from "react";
 
-import {
-  getChats,
-  addChat,
-  deleteChat
-} from "../api/api";
+function Chatbot() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
 
-function ChatbotManager() {
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [chats, setChats] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const [form, setForm] = useState({
-    question: "",
-    answer: ""
-  });
-
-  /* ---------- LOAD DATA ---------- */
-  const loadChats = async () => {
-    try {
-      setLoading(true);
-      const data = await getChats();
-      setChats(data);
-      setError("");
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load chatbot data");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const bottomRef = useRef(null);
 
   useEffect(() => {
-    loadChats();
-  }, []);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  /* ---------- ADD ---------- */
-  const handleAdd = async () => {
-    if (!form.question || !form.answer) {
-      alert("Please fill all fields");
-      return;
-    }
+  const sendMessage = async () => {
+    if (!input.trim()) return;
 
-    try {
-      await addChat(form);
+    const userMessage = {
+      sender: "user",
+      text: input,
+    };
 
-      setShowModal(false);
-      setForm({ question: "", answer: "" });
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
 
-      loadChats();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to add response");
-    }
-  };
+    // fake bot reply
+    setTimeout(() => {
+      const botMessage = {
+        sender: "bot",
+        text: "Typing response...",
+      };
 
-  /* ---------- DELETE ---------- */
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this chatbot response?")) return;
-
-    try {
-      await deleteChat(id);
-      loadChats();
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed");
-    }
+      setMessages(prev => [...prev, botMessage]);
+    }, 600);
   };
 
   return (
-    <div className="admin-container">
-      <Sidebar menuOpen={menuOpen} />
-
-      <div className="main-content">
-        <Navbar setMenuOpen={setMenuOpen} />
-
-        <div className="page">
-          <h1>Chatbot Manager</h1>
-
-          <button
-            className="add-btn"
-            onClick={() => setShowModal(true)}
-          >
-            + Add Response
-          </button>
-
-          {loading && <p>Loading chatbot responses...</p>}
-          {error && <p className="error">{error}</p>}
-
-          <Table
-            columns={["ID","Question","Answer"]}
-            data={chats}
-            onDelete={handleDelete}
-          />
-        </div>
+    <div className="chat-container">
+      <div className="messages">
+        {messages.map((msg, i) => (
+          <div key={i} className={msg.sender}>
+            {msg.text}
+          </div>
+        ))}
+        <div ref={bottomRef}></div>
       </div>
 
-      {showModal && (
-        <Modal
-          title="Add Chatbot Response"
-          close={() => setShowModal(false)}
-        >
-          <input
-            placeholder="User Question"
-            value={form.question}
-            onChange={(e)=>
-              setForm({...form, question:e.target.value})
-            }
-          />
-
-          <textarea
-            placeholder="Bot Answer"
-            value={form.answer}
-            onChange={(e)=>
-              setForm({...form, answer:e.target.value})
-            }
-          />
-
-          <button className="save-btn" onClick={handleAdd}>
-            Save
-          </button>
-        </Modal>
-      )}
+      <div className="input-area">
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Type message..."
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
     </div>
   );
 }
 
-export default ChatbotManager;
+export default Chatbot;
