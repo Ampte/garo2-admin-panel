@@ -16,6 +16,9 @@ function ChatbotManager() {
   const [chats, setChats] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const [form, setForm] = useState({
     question: "",
     answer: ""
@@ -23,8 +26,17 @@ function ChatbotManager() {
 
   /* ---------- LOAD DATA ---------- */
   const loadChats = async () => {
-    const data = await getChats();
-    setChats(data);
+    try {
+      setLoading(true);
+      const data = await getChats();
+      setChats(data);
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load chatbot data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -33,16 +45,35 @@ function ChatbotManager() {
 
   /* ---------- ADD ---------- */
   const handleAdd = async () => {
-    await addChat(form);
-    setShowModal(false);
-    setForm({ question:"", answer:"" });
-    loadChats();
+    if (!form.question || !form.answer) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    try {
+      await addChat(form);
+
+      setShowModal(false);
+      setForm({ question: "", answer: "" });
+
+      loadChats();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add response");
+    }
   };
 
   /* ---------- DELETE ---------- */
   const handleDelete = async (id) => {
-    await deleteChat(id);
-    loadChats();
+    if (!window.confirm("Delete this chatbot response?")) return;
+
+    try {
+      await deleteChat(id);
+      loadChats();
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
+    }
   };
 
   return (
@@ -61,6 +92,9 @@ function ChatbotManager() {
           >
             + Add Response
           </button>
+
+          {loading && <p>Loading chatbot responses...</p>}
+          {error && <p className="error">{error}</p>}
 
           <Table
             columns={["ID","Question","Answer"]}

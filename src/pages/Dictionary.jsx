@@ -15,6 +15,9 @@ function Dictionary() {
   const [words, setWords] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const [form, setForm] = useState({
     english: "",
     garo: "",
@@ -22,8 +25,17 @@ function Dictionary() {
 
   /* ---------- LOAD WORDS ---------- */
   const loadWords = async () => {
-    const data = await getWords();
-    setWords(data);
+    try {
+      setLoading(true);
+      const data = await getWords();
+      setWords(data);
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load dictionary");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -32,16 +44,35 @@ function Dictionary() {
 
   /* ---------- ADD WORD ---------- */
   const handleAdd = async () => {
-    await addWord(form);
-    setShowModal(false);
-    setForm({ english: "", garo: "" });
-    loadWords();
+    if (!form.english || !form.garo) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    try {
+      await addWord(form);
+
+      setShowModal(false);
+      setForm({ english: "", garo: "" });
+
+      loadWords();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add word");
+    }
   };
 
   /* ---------- DELETE WORD ---------- */
   const handleDelete = async (id) => {
-    await deleteWord(id);
-    loadWords();
+    if (!window.confirm("Delete this word?")) return;
+
+    try {
+      await deleteWord(id);
+      loadWords();
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
+    }
   };
 
   return (
@@ -60,6 +91,9 @@ function Dictionary() {
           >
             + Add Word
           </button>
+
+          {loading && <p>Loading dictionary...</p>}
+          {error && <p className="error">{error}</p>}
 
           <Table
             columns={["ID", "English", "Garo"]}

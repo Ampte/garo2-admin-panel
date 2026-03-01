@@ -14,6 +14,8 @@ function Users() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -22,8 +24,17 @@ function Users() {
 
   /* ---------- LOAD USERS ---------- */
   const loadUsers = async () => {
-    const data = await getUsers();
-    setUsers(data);
+    try {
+      setLoading(true);
+      const data = await getUsers();
+      setUsers(data);
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load users");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -32,15 +43,36 @@ function Users() {
 
   /* ---------- ADD USER ---------- */
   const handleAdd = async () => {
-    await addUser(form);
-    setShowModal(false);
-    loadUsers();
+    if (!form.name || !form.email) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    try {
+      await addUser(form);
+
+      // reset form
+      setForm({ name: "", email: "" });
+
+      setShowModal(false);
+      loadUsers();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add user");
+    }
   };
 
   /* ---------- DELETE USER ---------- */
   const handleDelete = async (id) => {
-    await deleteUser(id);
-    loadUsers();
+    if (!window.confirm("Delete this user?")) return;
+
+    try {
+      await deleteUser(id);
+      loadUsers();
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
+    }
   };
 
   return (
@@ -60,6 +92,9 @@ function Users() {
             + Add User
           </button>
 
+          {loading && <p>Loading users...</p>}
+          {error && <p className="error">{error}</p>}
+
           <Table
             columns={["ID", "Name", "Email"]}
             data={users}
@@ -72,6 +107,7 @@ function Users() {
         <Modal title="Add User" close={() => setShowModal(false)}>
           <input
             placeholder="Name"
+            value={form.name}
             onChange={(e) =>
               setForm({ ...form, name: e.target.value })
             }
@@ -79,6 +115,7 @@ function Users() {
 
           <input
             placeholder="Email"
+            value={form.email}
             onChange={(e) =>
               setForm({ ...form, email: e.target.value })
             }
