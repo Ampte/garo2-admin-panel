@@ -77,12 +77,12 @@ export const getStats = async () => {
 /* ---------- CHATBOT ---------- */
 
 export const getChats = async () => {
-  const res = await fetch("http://localhost:5000/api/chatbot");
+  const res = await fetch("https://backend.garo2.com//api/chatbot");
   return res.json();
 };
 
 export const addChat = async (data) => {
-  await fetch("http://localhost:5000/api/chatbot", {
+  await fetch("https://backend.garo2.com//api/chatbot", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify(data)
@@ -90,7 +90,7 @@ export const addChat = async (data) => {
 };
 
 export const deleteChat = async (id) => {
-  await fetch(`http://localhost:5000/api/chatbot/${id}`, {
+  await fetch(`https://backend.garo2.com//api/chatbot/${id}`, {
     method: "DELETE"
   });
 };
