@@ -1,96 +1,80 @@
-const BASE_URL = "https://backend.garo2.com//api";
+const BASE_URL = "https://backend.garo2.com/api";
 
-/* ---------- USERS ---------- */
+/* ---------- REQUEST HELPER ---------- */
 
-export const getUsers = async () => {
-  const res = await fetch(`${BASE_URL}/users`);
+const request = async (endpoint, options = {}) => {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!res.ok) {
+    throw new Error(`API Error: ${res.status}`);
+  }
+
   return res.json();
 };
 
-export const addUser = async (data) => {
-  await fetch(`${BASE_URL}/users`, {
+
+
+
+export const getUsers = () => request("/users");
+
+export const addUser = (data) =>
+  request("/users", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-};
 
-export const deleteUser = async (id) => {
-  await fetch(`${BASE_URL}/users/${id}`, {
-    method: "DELETE",
-  });
-};
+export const deleteUser = (id) =>
+  request(`/users/${id}`, { method: "DELETE" });
 
 
-/* ---------- DICTIONARY ---------- */
 
-export const getWords = async () => {
-  const res = await fetch(`${BASE_URL}/dictionary`);
-  return res.json();
-};
 
-export const addWord = async (data) => {
-  await fetch(`${BASE_URL}/dictionary`, {
+export const getWords = () => request("/dictionary");
+
+export const addWord = (data) =>
+  request("/dictionary", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-};
 
-export const deleteWord = async (id) => {
-  await fetch(`${BASE_URL}/dictionary/${id}`, {
-    method: "DELETE",
-  });
-};
+export const deleteWord = (id) =>
+  request(`/dictionary/${id}`, { method: "DELETE" });
 
 
-/* ---------- LESSONS ---------- */
 
-export const getLessons = async () => {
-  const res = await fetch(`${BASE_URL}/lessons`);
-  return res.json();
-};
 
-export const addLesson = async (data) => {
-  await fetch(`${BASE_URL}/lessons`, {
+export const getLessons = () => request("/lessons");
+
+export const addLesson = (data) =>
+  request("/lessons", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-};
 
-export const deleteLesson = async (id) => {
-  await fetch(`${BASE_URL}/lessons/${id}`, {
-    method: "DELETE",
-  });
-};
+export const deleteLesson = (id) =>
+  request(`/lessons/${id}`, { method: "DELETE" });
 
 
-/* ---------- DASHBOARD STATS ---------- */
-
-export const getStats = async () => {
-  const res = await fetch(`${BASE_URL}/stats`);
-  return res.json();
-};
 
 
-/* ---------- CHATBOT ---------- */
+export const getStats = () => request("/stats");
 
-export const getChats = async () => {
-  const res = await fetch("https://backend.garo2.com//api/chatbot");
-  return res.json();
-};
 
-export const addChat = async (data) => {
-  await fetch("https://backend.garo2.com//api/chatbot", {
+
+
+export const getChats = () => request("/chatbot");
+
+export const addChat = (data) =>
+  request("/chatbot", {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
   });
-};
 
-export const deleteChat = async (id) => {
-  await fetch(`https://backend.garo2.com//api/chatbot/${id}`, {
-    method: "DELETE"
-  });
-};
+export const deleteChat = (id) =>
+  request(`/chatbot/${id}`, { method: "DELETE" });
