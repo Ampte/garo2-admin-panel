@@ -23,11 +23,23 @@ const request = async (endpoint, options = {}) => {
 
 export const getUsers = () => request("/users");
 
-export const addUser = (data) =>
-  request("/users", {
+export const addUser = async (data) => {
+  const res = await fetch(`${BASE_URL}/users`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(data),
   });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    throw new Error(result.error || "Server error");
+  }
+
+  return result;
+};
 
 export const deleteUser = (id) =>
   request(`/users/${id}`, { method: "DELETE" });
