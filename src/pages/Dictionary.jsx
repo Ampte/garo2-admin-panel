@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 const DictionaryManager = () => {
 
@@ -21,7 +23,7 @@ const DictionaryManager = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        fetch("http://localhost:3000/api/addWords", {
+        fetch(`${API_URL}/addWords`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -38,7 +40,7 @@ const DictionaryManager = () => {
     };
 
     const fetchWords = () => {
-        fetch("http://localhost:3000/api/getWords")
+        fetch(`${API_URL}/getWords`)
         .then((response) => response.json())
         .then((data) => {
             setTotalWords(data);
@@ -55,7 +57,7 @@ const DictionaryManager = () => {
 
 
     const deleteWord = (id) => {
-        fetch(`http://localhost:3000/api/deleteWord/${id}`, {
+        fetch(`${API_URL}/deleteWord/${id}`, {
             method: 'DELETE',
         })
         .then((response) => response.json())

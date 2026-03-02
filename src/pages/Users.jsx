@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 
 import Navbar from '../components/Navbar';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const UserManager = () => {
 
 
@@ -20,7 +22,7 @@ const UserManager = () => {
     }
     const handleSubmit = (e) => {
         e.preventDefault();
-        fetch("http://localhost:3000/api/addUsers", {
+        fetch(`${API_URL}/addUsers`, {
             method: 'POST',
             headers: {
                 'Content-Type':'application/json'
@@ -38,14 +40,13 @@ const UserManager = () => {
     };
 
     const fetchUsers = () => {
-         fetch('http://localhost:3000/api/getUsers',)
+         fetch(`${API_URL}/getUsers`,)
         .then((response) => response.json())
         .then((data) => {
             setUserData(data);
             setLoading(false);
         })
         .catch((error) => {
-            alert("Cannot fetch user data");
             setLoading(true);
         });
     };
@@ -56,7 +57,7 @@ const UserManager = () => {
     },[])
 
     const deleteUser = (id) => {
-        fetch(`http://localhost:3000/api/deleteUsers/${id}`, {
+        fetch(`${API_URL}/deleteUsers/${id}`, {
             method: 'DELETE',
         })
         .then((response) => response.json())
@@ -83,7 +84,7 @@ const UserManager = () => {
             </form>
             <div className='userData'>
                 {loading ? (
-                    <h2>Loading Users</h2>
+                    <h2>Loading Users...</h2>
                 ) : (
                     <table>
                         <thead>

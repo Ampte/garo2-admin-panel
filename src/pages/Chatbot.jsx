@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 
 import Navbar from '../components/Navbar';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ChatbotManager = () => {
 
     const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ const ChatbotManager = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        fetch("http://localhost:3000/api/addChats", {
+        fetch(`${API_URL}/addChats`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
@@ -39,7 +41,7 @@ const ChatbotManager = () => {
     };
 
     const fetchChats = () => {
-        fetch("http://localhost:3000/api/getChats")
+        fetch(`${API_URL}/getChats`)
         .then((response) => response.json())
         .then((data) => {
             setChats(data);
@@ -56,7 +58,7 @@ const ChatbotManager = () => {
 
 
     const deleteChat = (id) => {
-        fetch(`http://localhost:3000/api/deleteChats/${id}`,{
+        fetch(`${API_URL}/deleteChats/${id}`,{
             method: 'DELETE',
         })
         .then((response) => response.json())
