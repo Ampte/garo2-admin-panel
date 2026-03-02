@@ -1,133 +1,115 @@
-import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
-import Table from "../components/Table";
-import Modal from "../components/Modal";
+import React, { useEffect, useState } from 'react';
 
-import {
-  getUsers,
-  addUser,
-  deleteUser,
-} from "../api/api";
+import Navbar from '../components/Navbar';
 
-function Users() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+const UserManager = () => {
 
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-  });
 
-  /* ---------- LOAD USERS ---------- */
-  const loadUsers = async () => {
-    try {
-      setLoading(true);
-      const data = await getUsers();
-      setUsers(data);
-      setError("");
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load users");
-    } finally {
-      setLoading(false);
+    const [user, setUser] = useState({
+        name: '',
+        email: ''
+    });
+
+
+    const [userData, setUserData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+
+    const handleChange = (e) => {
+        setUser({...user, [e.target.name]: e.target.value})
     }
-  };
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetch("http://localhost:3000/api/addUsers", {
+            method: 'POST',
+            headers: {
+                'Content-Type':'application/json'
+            },
+            body: JSON.stringify(user)
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            alert(data.message);
+            fetchUsers();
+        })
+        .catch((error) => {
+            alert("Fail adding user");
+        });
+    };
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
+    const fetchUsers = () => {
+         fetch('http://localhost:3000/api/getUsers',)
+        .then((response) => response.json())
+        .then((data) => {
+            setUserData(data);
+            setLoading(false);
+        })
+        .catch((error) => {
+            alert("Cannot fetch user data");
+            setLoading(true);
+        });
+    };
 
-  /* ---------- ADD USER ---------- */
-  const handleAdd = async () => {
-    if (!form.name || !form.email) {
-      alert("Please fill all fields");
-      return;
-    }
 
-    try {
-      await addUser(form);
+    useEffect(() => {
+       fetchUsers();
+    },[])
 
-      // reset form
-      setForm({ name: "", email: "" });
+    const deleteUser = (id) => {
+        fetch(`http://localhost:3000/api/deleteUsers/${id}`, {
+            method: 'DELETE',
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            alert(data.message);
+            fetchUsers();
+        })
+        .catch((error) => {
+            alert("Fail deleting user");
+        });
+    };
 
-      setShowModal(false);
-      loadUsers();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to add user");
-    }
-  };
+    return(
+        <>
+        <Navbar/>
+        <div className='usermanager'>
+            <h1>Manage User</h1>
 
-  /* ---------- DELETE USER ---------- */
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this user?")) return;
-
-    try {
-      await deleteUser(id);
-      loadUsers();
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed");
-    }
-  };
-
-  return (
-    <div className="admin-container">
-      <Sidebar menuOpen={menuOpen} />
-
-      <div className="main-content">
-        <Navbar setMenuOpen={setMenuOpen} />
-
-        <div className="page">
-          <h1>Manage Users</h1>
-
-          <button
-            className="add-btn"
-            onClick={() => setShowModal(true)}
-          >
-            + Add User
-          </button>
-
-          {loading && <p>Loading users...</p>}
-          {error && <p className="error">{error}</p>}
-
-          <Table
-            columns={["ID", "Name", "Email"]}
-            data={users}
-            onDelete={handleDelete}
-          />
+            <form onSubmit={handleSubmit}>
+                <input type='text' name='name' onChange={handleChange} placeholder='Name'/>
+                <input type='email' name='email' onChange={handleChange} placeholder='Email'/>
+                <button>Save</button>
+                <button type='reset'>Reset</button>
+            </form>
+            <div className='userData'>
+                {loading ? (
+                    <h2>Loading Users</h2>
+                ) : (
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {userData.map((usr) => (
+                                <tr key={usr.id}>
+                                    <td>{usr.id}</td>
+                                    <td>{usr.name}</td>
+                                    <td>{usr.email}</td>
+                                    <td><button onClick={() => deleteUser(usr.id)}>Delete</button></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
         </div>
-      </div>
+        </>
+    );
+};
 
-      {showModal && (
-        <Modal title="Add User" close={() => setShowModal(false)}>
-          <input
-            placeholder="Name"
-            value={form.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
-          />
-
-          <input
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) =>
-              setForm({ ...form, email: e.target.value })
-            }
-          />
-
-          <button className="save-btn" onClick={handleAdd}>
-            Save
-          </button>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-export default Users;
+export default UserManager;

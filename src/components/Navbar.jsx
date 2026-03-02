@@ -1,22 +1,22 @@
-import { Bell, Menu } from "lucide-react";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-function Navbar({ setMenuOpen }) {
-  return (
-    <div className="navbar">
+const Navbar = () => {
 
-      <Menu
-        className="menu-icon"
-        onClick={() => setMenuOpen(prev => !prev)}
-      />
-
-      <div className="nav-right">
-        <div className="admin">
-          <img src="https://i.pravatar.cc/40" />
-          <span>Admin</span>
-        </div>
-      </div>
+  const navigate = useNavigate();
+  return(
+    <>
+    <div className='navbar'>
+      <h1>Garo2 Admin</h1>
     </div>
-  );
+    <div className='navlinks'>
+      <button onClick={() => navigate("/")}>Home</button>
+      <button onClick={() => navigate('/users')}>Manage Users</button>
+      <button onClick={() => navigate('/dictionary')}>Manage Dictionary</button>
+      <button onClick={() => navigate("/chatbot")}>Manage Chatbot</button>
+    </div>
+    </>
+  )
 }
 
 export default Navbar;

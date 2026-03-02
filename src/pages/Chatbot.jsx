@@ -1,58 +1,113 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useEffect, useState } from 'react';
 
-function Chatbot() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+import Navbar from '../components/Navbar';
 
-  const bottomRef = useRef(null);
+const ChatbotManager = () => {
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    const [loading, setLoading] = useState(true);
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+    const [chats, setChats] = useState([]);
 
-    const userMessage = {
-      sender: "user",
-      text: input,
+    const [botquestion, setBotquestion] = useState({
+        question: '',
+        answer: ''
+    });
+
+
+    const handleChange = (e) => {
+        setBotquestion({...botquestion, [e.target.name]: e.target.value});
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInput("");
 
-    // fake bot reply
-    setTimeout(() => {
-      const botMessage = {
-        sender: "bot",
-        text: "Typing response...",
-      };
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetch("http://localhost:3000/api/addChats", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(botquestion)
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            alert(data.message);
+            fetchChats();
+        })
+        .catch((error) => {
+            alert("Fail adding chats");
+        });
+    };
 
-      setMessages(prev => [...prev, botMessage]);
-    }, 600);
-  };
+    const fetchChats = () => {
+        fetch("http://localhost:3000/api/getChats")
+        .then((response) => response.json())
+        .then((data) => {
+            setChats(data);
+            setLoading(false);
+        })
+        .catch((error) => {
+            setLoading(true);
+        });
+    };
 
-  return (
-    <div className="chat-container">
-      <div className="messages">
-        {messages.map((msg, i) => (
-          <div key={i} className={msg.sender}>
-            {msg.text}
-          </div>
-        ))}
-        <div ref={bottomRef}></div>
-      </div>
+    useEffect(() => {
+        fetchChats();
+    },[]);
 
-      <div className="input-area">
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Type message..."
-        />
-        <button onClick={sendMessage}>Send</button>
-      </div>
-    </div>
-  );
-}
 
-export default Chatbot;
+    const deleteChat = (id) => {
+        fetch(`http://localhost:3000/api/deleteChats/${id}`,{
+            method: 'DELETE',
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            alert(data.message);
+            fetchChats();
+        })
+        .catch((error) => {
+            alert("Fail deleting chats");
+        });
+    };
+
+    return(
+        <>
+        <Navbar/>
+        <div className='chatbotmanger'>
+            <h1>Chatbot Manager</h1>
+
+            <form onSubmit={handleSubmit}>
+                <input type='text' name='question' onChange={handleChange} placeholder='Qustion'/>
+                <input type='text' name='answer' onChange={handleChange} placeholder='Answer'/>
+                <button>Save</button>
+                <button type='reset'>Reset</button>
+            </form>
+           {loading ? (
+            <h2>Loading Chats...</h2>
+           ): (
+             <table>
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Question</th>
+                        <th>Answer</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {chats.map((chat) => (
+                        <tr key={chat.id}>
+                            <td>{chat.id}</td>
+                            <td>{chat.question}</td>
+                            <td>{chat.answer}</td>
+                            <td><button onClick={() => deleteChat(chat.id)}>Delete</button></td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+           )}
+        </div>
+        </>
+    );
+};
+
+export default ChatbotManager;

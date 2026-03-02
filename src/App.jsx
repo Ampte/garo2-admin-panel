@@ -1,25 +1,26 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import Dashboard from "./pages/Dashboard";
-import Users from "./pages/Users";
-import Dictionary from "./pages/Dictionary";
-import Lessons from "./pages/Lessons";
-import ChatbotManager from "./pages/Chatbot";
-
+import React from 'react';
+import { BrowserRouter, Routes, Route} from 'react-router-dom';
 import "./App.css";
 
-function App() {
-  return (
+
+import Dashboard from './pages/Dashboard';
+import ChatbotManager from './pages/Chatbot';
+import UserManager from './pages/Users';
+import DictionaryManager from './pages/Dictionary';
+
+const App = () => {
+  return(
+    <>
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/dictionary" element={<Dictionary />} />
-        <Route path="/lessons" element={<Lessons />} />
-        <Route path="/chatbot" element={<ChatbotManager/>}/>
-      </Routes>
+    <Routes>
+      <Route path="/" element={<Dashboard/>}/>
+      <Route path="/chatbot" element={<ChatbotManager/>}/>
+      <Route path='/users' element={<UserManager/>}/>
+      <Route path='/dictionary' element={<DictionaryManager/>}/>
+    </Routes>
     </BrowserRouter>
-  );
+    </>
+  )
 }
 
 export default App;

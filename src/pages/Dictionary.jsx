@@ -1,136 +1,112 @@
-import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
-import Table from "../components/Table";
-import Modal from "../components/Modal";
+import React, { useEffect, useState } from 'react';
+import Navbar from '../components/Navbar';
 
-import {
-  getWords,
-  addWord,
-  deleteWord,
-} from "../api/api";
 
-function Dictionary() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [words, setWords] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+const DictionaryManager = () => {
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+    const [totalWords, setTotalWords] = useState([]);
 
-  const [form, setForm] = useState({
-    english: "",
-    garo: "",
-  });
+    const [loading, setLoading] = useState(true);
 
-  /* ---------- LOAD WORDS ---------- */
-  const loadWords = async () => {
-    try {
-      setLoading(true);
-      const data = await getWords();
-      setWords(data);
-      setError("");
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load dictionary");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const [words, setWords] = useState({
+        english: '',
+        garo: ''
+    });
 
-  useEffect(() => {
-    loadWords();
-  }, []);
 
-  /* ---------- ADD WORD ---------- */
-  const handleAdd = async () => {
-    if (!form.english || !form.garo) {
-      alert("Please fill all fields");
-      return;
-    }
+    const handleChange = (e) =>{
+        setWords({...words, [e.target.name]: e.target.value});
+    };
 
-    try {
-      await addWord(form);
 
-      setShowModal(false);
-      setForm({ english: "", garo: "" });
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetch("http://localhost:3000/api/addWords", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(words)
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            alert(data.message);
+        })
+        .catch((error) => {
+            alert("Fail adding words");
+        });
+    };
 
-      loadWords();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to add word");
-    }
-  };
+    const fetchWords = () => {
+        fetch("http://localhost:3000/api/getWords")
+        .then((response) => response.json())
+        .then((data) => {
+            setTotalWords(data);
+            setLoading(false);
+        })
+        .catch((error) => {
+            setLoading(true);
+        });
+    };
 
-  /* ---------- DELETE WORD ---------- */
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this word?")) return;
+    useEffect(() => {
+        fetchWords();
+    },[]);
 
-    try {
-      await deleteWord(id);
-      loadWords();
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed");
-    }
-  };
 
-  return (
-    <div className="admin-container">
-      <Sidebar menuOpen={menuOpen} />
+    const deleteWord = (id) => {
+        fetch(`http://localhost:3000/api/deleteWord/${id}`, {
+            method: 'DELETE',
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            alert(data.message);
+            fetchWords();
+        })
+        .catch((error) => {
+            alert("Fail deleting word");
+        });
+    };
 
-      <div className="main-content">
-        <Navbar setMenuOpen={setMenuOpen} />
+    return(
+        <>
+        <Navbar/>
+        <div className='dictionarymanager'>
+            <h1>Dictionary Manager</h1>
 
-        <div className="page">
-          <h1>Dictionary Manager</h1>
-
-          <button
-            className="add-btn"
-            onClick={() => setShowModal(true)}
-          >
-            + Add Word
-          </button>
-
-          {loading && <p>Loading dictionary...</p>}
-          {error && <p className="error">{error}</p>}
-
-          <Table
-            columns={["ID", "English", "Garo"]}
-            data={words}
-            onDelete={handleDelete}
-          />
+            <form onSubmit={handleSubmit}>
+                <input type='text' name='english' onChange={handleChange} placeholder='English'/>
+                <input type='text' name='garo' onChange={handleChange} placeholder='Garo'/>
+                <button>Save</button>
+                <button type='reset'>Reset</button>
+            </form>
+            {loading ? (
+                <h2>Loading words...</h2>
+            ): (
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>English</th>
+                            <th>Garo</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {totalWords.map((tword) => (
+                            <tr key={tword.id}>
+                                <td>{tword.id}</td>
+                                <td>{tword.english}</td>
+                                <td>{tword.garo}</td>
+                                <td><button onClick={() => deleteWord(tword.id)}>Delete</button></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
         </div>
-      </div>
+        </>
+    );
+};
 
-      {showModal && (
-        <Modal
-          title="Add Dictionary Word"
-          close={() => setShowModal(false)}
-        >
-          <input
-            placeholder="English Word"
-            value={form.english}
-            onChange={(e) =>
-              setForm({ ...form, english: e.target.value })
-            }
-          />
-
-          <input
-            placeholder="Garo Word"
-            value={form.garo}
-            onChange={(e) =>
-              setForm({ ...form, garo: e.target.value })
-            }
-          />
-
-          <button className="save-btn" onClick={handleAdd}>
-            Save
-          </button>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-export default Dictionary;
+export default DictionaryManager;
