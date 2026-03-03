@@ -29,6 +29,7 @@ const DictionaryManager = () => {
       .then((response) => response.json())
       .then((data) => {
         alert(data.message);
+        fetchWords();
       })
       .catch(() => {
         alert("Fail adding words");
