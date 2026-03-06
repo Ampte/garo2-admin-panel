@@ -13,7 +13,7 @@ const Navbar = () => {
 
       {/* NAVIGATION LINKS */}
       <div className="navlinks">
-        <button className="nv-btn" onClick={() => navigate("/")}>
+        <button className="nv-btn" onClick={() => navigate("/dashboard")}>
           Home
         </button>
 
